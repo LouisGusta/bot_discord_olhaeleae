@@ -1,7 +1,7 @@
 {
   "name": "botolhaeleai",
   "version": "1.0.0",
-  "description": "",
+  "description": "Bot from discord , running a meme \"olhaeleae\" > \"look at him\" (https://www.youtube.com/watch?v=W8ab00LC-JQ) whenever someone enters a voice room!",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -10,14 +10,23 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-    "dependencies": {
-      "@discordjs/voice": "github:discordjs/voice",
-      "discord.js": "^13.6.0",
-      "dotenv": "^16.0.0",
-      "express": "^4.17.2",
-      "ffmpeg": "^0.0.4",
-      "ffmpeg-static": "^4.4.1",
-      "ffprobe": "^1.1.2",
-      "get-audio-duration": "^3.0.0"
-    }
+  "dependencies": {
+    "@discordjs/voice": "github:discordjs/voice",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.2",
+    "ffmpeg": "^0.0.4",
+    "ffmpeg-static": "^4.4.1",
+    "ffprobe": "^1.1.2",
+    "get-audio-duration": "^3.0.0",
+    "tweetnacl": "^1.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LouisGusta/bot_discord_olhaeleae.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LouisGusta/bot_discord_olhaeleae/issues"
+  },
+  "homepage": "https://github.com/LouisGusta/bot_discord_olhaeleae#readme"
 }
