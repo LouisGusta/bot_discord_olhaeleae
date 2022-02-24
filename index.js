@@ -28,9 +28,6 @@ const emotes = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣'
 let page = 0
 const prefix = config.PREFIX
 
-// remover servidor caso o bot seja expulso
-
-
 app.get('/', (req, res) => {
   const ping = new Date()
 
