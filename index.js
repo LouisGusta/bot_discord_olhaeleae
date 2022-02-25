@@ -238,8 +238,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   if (oldState.member.user.bot) return
   let newStatechannelId = newState.channelId
   let oldStatechannelId = oldState.channelId
-  console.log(newStatechannelId)
-  console.log(servers[guildId].activeVoiceChannels.indexOf(newStatechannelId))
   if (servers[guildId].activeVoiceChannels.indexOf(newStatechannelId) === -1) return  
   try {
     const duration = await getAudioDurationInSeconds('./meme.mp3')
