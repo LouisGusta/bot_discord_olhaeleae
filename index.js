@@ -4,21 +4,15 @@ const config = require('./config.json')
     const { Client, Intents, MessageEmbed } = require('discord.js')
 const {
   NoSubscriberBehavior,
-  StreamType,
   createAudioPlayer,
   createAudioResource,
   entersState,
-  AudioPlayerStatus,
   VoiceConnectionStatus,
   joinVoiceChannel,
 } = require('@discordjs/voice')
-const { exec } = require('child_process');
 const { getAudioDurationInSeconds } = require('get-audio-duration')
 const fs = require('fs')
 const dotenv = require('dotenv')
-const ms = require('ms')
-const { sep } = require('path')
-const { verify } = require('tweetnacl')
 dotenv.config()
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] })
 const servers = []
