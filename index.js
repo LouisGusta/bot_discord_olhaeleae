@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const config = require('./config.json')
-    const { Client, Intents, MessageEmbed } = require('discord.js')
+const { Client, Intents, MessageEmbed } = require('discord.js')
 const {
   NoSubscriberBehavior,
   createAudioPlayer,
@@ -161,8 +161,14 @@ client.on('guildDelete', (guild) => {
 
 client.on('messageCreate', async msg => {
   if (!msg.guild) return
+  if (msg.content == `<@${client.user.id}>` || msg.content == `<@!${client.user.id}>`) {
+    return msg.guild.channels.cache.get(msg.channelId).send(`👌 Olha o ${msg.author} ai , entre em um canal de voz ativo para ouvir o meme 🎶 você pode configurar os canais ativos, usando o comando \`${prefix} canais\`!`)
+  }
   if (!msg.content.startsWith(prefix)) return
   const guildId = msg.guild.id
+
+ 
+
   if (msg.content === prefix + ' canais') {
     const voiceChannels = msg.guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition})
     const serverIcon =  msg.guild.iconURL()
@@ -181,10 +187,8 @@ client.on('messageCreate', async msg => {
       .setDescription('Servidores:' + '\n' + getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[0])
       .setThumbnail(serverBanner ? serverBanner : serverIcon) 
       .setTimestamp()
-      .setFooter({ text: 'Aqui a quantidade de canais de voz adicionados', iconURL: serverIcon })
-
-
-
+      .setFooter({ text:  servers[guildId].activeVoiceChannels.length + " canais de voz ativos.", iconURL: serverIcon })
+    try {
       msg.guild.channels.cache.get(msg.channelId).send({ embeds: [channelsEmbed] }).then(async embedMessage => {
         let positionsVoiceChannels = getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[1]
         const  filter = async (reaction, user) => {
@@ -221,10 +225,11 @@ client.on('messageCreate', async msg => {
         embedMessage.react(arrows[1])
 
         await embedMessage.awaitReactions({filter, time: 300_000}).then(() => [embedMessage.reactions.removeAll(), updateChannels(guildId)])
-
       })
-
+    } catch (e) {
+      console.log(e)
     }
+  }
 })
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
