@@ -167,8 +167,6 @@ client.on('messageCreate', async msg => {
   if (!msg.content.startsWith(prefix)) return
   const guildId = msg.guild.id
 
- 
-
   if (msg.content === prefix + ' canais') {
     const voiceChannels = msg.guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition})
     const serverIcon =  msg.guild.iconURL()
