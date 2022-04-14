@@ -78,7 +78,7 @@ const saveNewServer = (guildId, channels) => {
       console.log('Error read file: ', err)
     } else {
       const valuesFile = JSON.parse(data)
-      const control = 0
+      let control = 0
       valuesFile.map(x => {if (x.id === guildId) control = 1})
       if (control == 0) valuesFile.push({id: guildId, activeVoiceChannels: channels.map(c => c.id)})
       const writeFile = JSON.stringify(valuesFile)
@@ -129,7 +129,7 @@ const updateChannels = (guildId) => {
       console.log('Error read file: ', err)
     } else {
       const valuesFile = JSON.parse(data)
-      valuesFile.map(x => {if (x.id === guildId) x.activeVoiceChannels = servers[x.id].activeVoiceChannels})
+      valuesFile.map(x => {if (x.id === guildId) [x.activeVoiceChannels = servers[x.id].activeVoiceChannels, console.log(`From server ${x.id} updated ${servers[x.id].activeVoiceChannels}`)]})
       const writeFile = JSON.stringify(valuesFile)
       fs.writeFile('./serverList.json', writeFile, () => { })
     }
@@ -151,117 +151,135 @@ client.on('guildCreate', (guild) => {
     player: null,
     activeVoiceChannels: null
   }
-
   saveNewServer(guild.id, guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition}))
+  console.log(`Server ${guild.name} of id ${guild.id} has been added`)
 })
 
 client.on('guildDelete', (guild) => {  
   deleteServer(guild.id)
+  console.log(`Server ${guild.name} of id ${guild.id} has been deleted`)
 })
 
 client.on('messageCreate', async msg => {
-  if (!msg.guild) return
-  if (msg.content == `<@${client.user.id}>` || msg.content == `<@!${client.user.id}>`) {
-    return msg.guild.channels.cache.get(msg.channelId).send(`👌 Olha o ${msg.author} ai , entre em um canal de voz ativo para ouvir o meme 🎶 você pode configurar os canais ativos, usando o comando \`${prefix} canais\`!`)
-  }
-  if (!msg.content.startsWith(prefix)) return
-  const guildId = msg.guild.id
+  try {
+    if (!msg.guild) return
+    if (msg.content == `<@${client.user.id}>` || msg.content == `<@!${client.user.id}>`) {
+      return msg.guild.channels.cache.get(msg.channelId).send(`👌 Olha o ${msg.author} ai , entre em um canal de voz ativo para ouvir o meme 🎶 você pode configurar os canais ativos, usando o comando \`${prefix} canais\`!`)
+    }
+    if (!msg.content.startsWith(prefix)) return
+    const guildId = msg.guild.id
 
-  if (msg.content === prefix + ' canais') {
-    const voiceChannels = msg.guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition})
-    const serverIcon =  msg.guild.iconURL()
-    const serverBanner = msg.guild.bannerURL()
-    const serverName = msg.guild.name
-    const channelsEmbed = new MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle(serverName)
-      .setURL('https://discord.js.org/')
-      .setAuthor(
-        { 
-          name: 'Olha ele ai', 
-          iconURL: 'https://cdn.discordapp.com/app-icons/941684090485227531/8d9ec75c03439a0173b09ee04b839c35.png?size=256', 
-          url: 'https://top.gg/bot/938038772946313247' 
-        })
-      .setDescription('Servidores:' + '\n' + getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[0])
-      .setThumbnail(serverBanner ? serverBanner : serverIcon) 
-      .setTimestamp()
-      .setFooter({ text:  servers[guildId].activeVoiceChannels.length + " canais de voz ativos.", iconURL: serverIcon })
-    try {
-      msg.guild.channels.cache.get(msg.channelId).send({ embeds: [channelsEmbed] }).then(async embedMessage => {
-        let positionsVoiceChannels = getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[1]
-        const  filter = async (reaction, user) => {
-          if (user.bot) return;
-          positionsVoiceChannels = getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[1]
-            if (emotes.includes(reaction.emoji.name)) {
-              let channelId
-              voiceChannels.map(c => {
-                  if (c.rawPosition === (page * configPage) + emotes.indexOf(reaction.emoji.name)) channelId = c.id
-              })
+    if (msg.content === prefix + ' canais') {
+      const voiceChannels = msg.guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition})
+      const serverIcon =  msg.guild.iconURL()
+      const serverBanner = msg.guild.bannerURL()
+      const serverName = msg.guild.name
+      const channelsEmbed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle(serverName)
+        .setURL('https://discord.js.org/')
+        .setAuthor(
+          { 
+            name: 'Olha ele ai', 
+            iconURL: 'https://cdn.discordapp.com/app-icons/941684090485227531/8d9ec75c03439a0173b09ee04b839c35.png?size=256', 
+            url: 'https://top.gg/bot/938038772946313247' 
+          })
+        .setDescription('Servidores:' + '\n' + getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[0])
+        .setThumbnail(serverBanner ? serverBanner : serverIcon) 
+        .setTimestamp()
+        .setFooter({ text:  servers[guildId].activeVoiceChannels.length + " canais de voz ativos.", iconURL: serverIcon })
+      try {
+        msg.guild.channels.cache.get(msg.channelId).send({ embeds: [channelsEmbed] }).then(async embedMessage => {
+          let positionsVoiceChannels = getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[1]
+          const  filter = async (reaction, user) => {
+            if (user.bot) return;
+            positionsVoiceChannels = getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[1]
+              if (emotes.includes(reaction.emoji.name)) {
+                let channelId
+                voiceChannels.map(c => {
+                    if (c.rawPosition === (page * configPage) + emotes.indexOf(reaction.emoji.name)) channelId = c.id
+                })
 
-              if (channelId) {
-                if (servers[guildId].activeVoiceChannels.indexOf(channelId) > -1) 
-                  servers[guildId].activeVoiceChannels.splice(servers[guildId].activeVoiceChannels.indexOf(channelId), 1)
-                else 
-                  servers[guildId].activeVoiceChannels.push(channelId)
+                if (channelId) {
+                  if (servers[guildId].activeVoiceChannels.indexOf(channelId) > -1) 
+                    servers[guildId].activeVoiceChannels.splice(servers[guildId].activeVoiceChannels.indexOf(channelId), 1)
+                  else 
+                    servers[guildId].activeVoiceChannels.push(channelId)
+                }
               }
-            }
-            
-            if (reaction.emoji.name === arrows[0] && page > 0) page -= 1
-            if (reaction.emoji.name === arrows[1] && page < getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[2] - 1) page += 1
+              
+              if (reaction.emoji.name === arrows[0] && page > 0) page -= 1
+              if (reaction.emoji.name === arrows[1] && page < getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[2] - 1) page += 1
 
-            embedMessage.edit({embeds:[channelsEmbed.setDescription('Servidores:' + '\n' + getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[0])]})
-            const userReactions = embedMessage.reactions.cache.filter(reaction => reaction.users.cache.has(user.id))
-            for (const reaction of userReactions.values()) {
-              reaction.users.remove(user.id)
-            }
-        }
+              embedMessage.edit({embeds:[channelsEmbed.setDescription('Servidores:' + '\n' + getServers(voiceChannels, servers[guildId].activeVoiceChannels, page)[0])]})
+              const userReactions = embedMessage.reactions.cache.filter(reaction => reaction.users.cache.has(user.id))
+              for (const reaction of userReactions.values()) {
+                reaction.users.remove(user.id)
+              }
+          }
 
-        embedMessage.react(arrows[0])
+          embedMessage.react(arrows[0])
 
-        for (i=0; i < positionsVoiceChannels; i++) embedMessage.react(emotes[i])
-            
-        embedMessage.react(arrows[1])
+          for (i=0; i < positionsVoiceChannels; i++) embedMessage.react(emotes[i])
+              
+          embedMessage.react(arrows[1])
 
-        await embedMessage.awaitReactions({filter, time: 300_000}).then(() => [embedMessage.reactions.removeAll(), updateChannels(guildId)])
-      })
-    } catch (e) {
-      console.log(e)
+          await embedMessage.awaitReactions({filter, time: 300_000}).then(() => [embedMessage.reactions.removeAll(), updateChannels(guildId)])
+        })
+      } catch (e) {
+        console.log(e)
+      }
+    }
+  } catch (e) {
+    if (e instanceof TypeError) { 
+      if (e.message.indexOf('activeVoiceChannels') != -1) {
+        saveNewServer(msg.guild.id, msg.guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition}))
+      }
     }
   }
 })
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  let guildId = newState.guild.id
-  if (oldState.member.user.bot) return
-  let newStatechannelId = newState.channelId
-  let oldStatechannelId = oldState.channelId
-  if (servers[guildId].activeVoiceChannels.indexOf(newStatechannelId) === -1) return  
   try {
-    const duration = await getAudioDurationInSeconds('./meme.mp3')
+    let guildId = newState.guild.id
+    if (oldState.member.user.bot) return
+    let newStatechannelId = newState.channelId
+    let oldStatechannelId = oldState.channelId
+    if (servers[guildId].activeVoiceChannels.indexOf(newStatechannelId) === -1) return  
+    try {
+      const duration = await getAudioDurationInSeconds('./meme.mp3')
 
-    if ((oldStatechannelId === null && newStatechannelId !== null) || (oldStatechannelId !== null && newStatechannelId !== null && oldStatechannelId !== newStatechannelId)) {
-      servers[guildId].conn = await conChannel(newState, newStatechannelId)
-      servers[guildId].player = createAudioPlayer({
-        behaviors: {
-          noSubscriber: NoSubscriberBehavior.Pause,
-        },
-      })
-      servers[guildId].resource = createAudioResource('./meme.mp3')
-      servers[guildId].dispatcher = servers[guildId].player.play(servers[guildId].resource)
-      servers[guildId].conn.subscribe(servers[guildId].player)
+      if ((oldStatechannelId === null && newStatechannelId !== null) || (oldStatechannelId !== null && newStatechannelId !== null && oldStatechannelId !== newStatechannelId)) {
+        servers[guildId].conn = await conChannel(newState, newStatechannelId)
+        servers[guildId].player = createAudioPlayer({
+          behaviors: {
+            noSubscriber: NoSubscriberBehavior.Pause,
+          },
+        })
+        servers[guildId].resource = createAudioResource('./meme.mp3')
+        servers[guildId].dispatcher = servers[guildId].player.play(servers[guildId].resource)
+        servers[guildId].conn.subscribe(servers[guildId].player)
 
-      setTimeout(() => {
-        try {
-          if (servers[guildId].conn._state.status != 'destroyed') servers[guildId].conn.destroy()
-        } catch (e) {
-          console.log('exit...')
-          if (servers[guildId].conn._state.status != 'destroyed') servers[guildId].conn.destroy()
-        }
-      }, duration * 1000 + 500)
+        setTimeout(() => {
+          try {
+            if (servers[guildId].conn._state.status != 'destroyed') servers[guildId].conn.destroy()
+          } catch (e) {
+            console.log('exit...')
+            if (servers[guildId].conn._state.status != 'destroyed') servers[guildId].conn.destroy()
+          }
+        }, duration * 1000 + 500)
+      }
+    } catch (e) {
+      console.log('Exceeded...')
     }
-  } catch (e) {
-    console.log('Exceeded...')
+  } catch (e) { 
+    if (e instanceof TypeError) { 
+      if (e.message.indexOf('activeVoiceChannels') != -1) {
+        saveNewServer(newState.guild.id, newState.guild.channels.cache.filter(c => c.type == 'GUILD_VOICE').sort((a, b) => {return a.rawPosition - b.rawPosition}))
+      }
+    }
   }
+
 })
 
 client.login(process.env.TOKEN)
